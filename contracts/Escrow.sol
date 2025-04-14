@@ -19,6 +19,8 @@ contract Escrow{
     mapping (uint256=>uint256) public purchasePrice;
     mapping (uint256=>uint256) public escrowAmount;
     mapping (uint256=>address) public buyer;
+    mapping (uint256=>bool) public inspectionPassed;
+    mapping (uint256=>mapping (address=>bool)) public approval;
 
     constructor(address _lender, address _inspector, address payable  _seller, address _nftAddress){
         lender=_lender;
@@ -37,8 +39,14 @@ contract Escrow{
         _;
     }
 
+    modifier onlyInspector(){
+        require(msg.sender==inspector, "Only inspector can call this method");
+        _;
+    }
+
     function list(uint256 nftID, uint256 _purchasePrice, uint256 _escrowAmount, address _buyer) public payable onlySeller{
         IERC721(nftAddress).transferFrom(msg.sender, address(this), nftID);
+
         isListed[nftID]=true;
         purchasePrice[nftID]=_purchasePrice;
         escrowAmount[nftID]=_escrowAmount;
@@ -54,4 +62,35 @@ contract Escrow{
     }
 
     receive() external payable { }
+
+    function updateInspectionStatus(uint256 nftID, bool passed) public onlyInspector{
+        inspectionPassed[nftID]=passed;
+    }
+
+    function approveSale(uint256 nftID) public{
+        approval[nftID][msg.sender]=true;
+    }
+
+    function finaliseSale(uint256 nftID) public{
+        require(inspectionPassed[nftID]);
+        require(approval[nftID][buyer[nftID]]);
+        require(approval[nftID][seller]);
+        require(approval[nftID][lender]);
+
+        require(address(this).balance >= purchasePrice[nftID]);
+        isListed[nftID] = false;
+
+        (bool success, )=payable(seller).call{value:address(this).balance}("");
+        require(success);
+
+        IERC721(nftAddress).transferFrom(address(this), buyer[nftID], nftID);
+    }
+
+    function cancelSale(uint256 nftID) public{
+        if(inspectionPassed[nftID]==false){
+            payable(buyer[nftID]).transfer(address(this).balance);
+        }else{
+            payable(seller).transfer(address(this).balance);
+        }
+    }
 }
