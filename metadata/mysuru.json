@@ -1,0 +1,33 @@
+{
+  "name": "Mysuru Nature Home",
+  "address": "KC Layout, Mysuru",
+  "description": "Comfy home on the foothills of Chamundi Betta",
+  "image": "http://localhost:8081/ipfs/QmWSzgvp6r5VCcfkZXmo4VTW7i85yTH5ajSkYVLhhTSveD",
+  "id": "3",
+  "attributes": [
+      {
+          "trait_type": "Purchase Price",
+          "value": 10
+      },
+      {
+          "trait_type": "Type of Residence",
+          "value": "Weekend home"
+      },
+      {
+          "trait_type": "Bed Rooms",
+          "value": 2
+      },
+      {
+          "trait_type": "Bathrooms",
+          "value": 2.5
+      },
+      {
+          "trait_type": "Square Feet",
+          "value": 3000
+      },
+      {
+          "trait_type": "Year Built",
+          "value": 2009
+      }
+  ]
+}
