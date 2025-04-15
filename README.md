@@ -235,8 +235,37 @@ Before deploying the contracts, make sure to follow these steps:
      ```
 
 ### 5. Interact with the DApp
-Once the contracts are deployed, you can interact with them using the frontend. <br>
-Steps will be provided soon
+Once the contracts are deployed, you can interact with them using the frontend.
+
+1. **Install Frontend Dependencies**:
+   - Navigate to the `RealEstateDApp` directory and install the required dependencies:
+     ```bash
+     npm install
+     ```
+
+2. **Start the Frontend**:
+   - Run the following command to start the development server:
+     ```bash
+     npm run dev
+     ```
+
+3. **Open the Application**:
+   - Open your browser and navigate to the URL provided by the development server (e.g., `http://localhost:5173`).
+
+4. **Connect Wallet**:
+   - Use MetaMask to connect your wallet to the application. Ensure that MetaMask is configured to use the local Ethereum network.
+
+5. **Perform Actions**:
+   - Follow the user flow to interact with the DApp:
+     - **Mint NFTs**: Upload property metadata and mint a new NFT.
+     - **List Properties**: Select an NFT and list it for sale through the escrow contract.
+     - **Deposit Escrow**: As a buyer, deposit the required escrow amount.
+     - **Approve Inspections**: Inspectors can update the inspection status.
+     - **Finalize Sales**: Approve and finalize the sale once all conditions are met.
+     - **Cancel Sales**: Cancel the sale if conditions are not satisfied.
+
+6. **Monitor Transactions**:
+   - Use the browser console or MetaMask activity logs to verify transactions and debug any issues.
 
 ## License
 
