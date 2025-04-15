@@ -9,29 +9,158 @@ The contract consists of:
 
 This system uses **Hardhat** for local blockchain development and **IPFS** for storing property metadata (such as images or documents).
 
+## Table of Contents
+1. [Introduction](#real-estate-dapp)
+2. [Components](#components)
+   - [a. Smart Contracts (On-Chain Logic)](#a-smart-contracts-on-chain-logic)
+   - [b. Frontend (User Interface)](#b-frontend-user-interface)
+   - [c. Storage (Off-Chain)](#c-storage-off-chain)
+3. [Architecture and User Flow Diagram](#architecture-and-user-flow-diagram)
+4. [Interactions Flow](#interactions-flow)
+   - [1. Minting a Property NFT (Seller)](#1-minting-a-property-nft-seller)
+   - [2. Listing Property for Sale (Seller)](#2-listing-property-for-sale-seller)
+   - [3. Depositing Escrow Funds (Buyer)](#3-depositing-escrow-funds-buyer)
+   - [4. Inspection Process (Inspector)](#4-inspection-process-inspector)
+   - [5. Approvals (All Parties)](#5-approvals-all-parties)
+   - [6. Finalizing the Sale (Anyone)](#6-finalizing-the-sale-anyone)
+   - [7. Cancelling the Sale (Anytime before finalization)](#7-cancelling-the-sale-anytime-before-finalization)
+5. [Tech Stack & Dev Tools](#tech-stack--dev-tools)
+6. [Steps to Use the Repository](#steps-to-use-the-repository)
+   - [1. Clone the Repository](#1-clone-the-repository)
+   - [2. Install Dependencies](#2-install-dependencies)
+   - [3. Upload Images and Metadata to IPFS](#3-upload-images-and-metadata-to-ipfs)
+   - [4. Deploy the Contracts](#4-deploy-the-contracts)
+   - [5. Interact with the DApp](#5-interact-with-the-dapp)
+7. [License](#license)
+
 ## Components
 
-### 1. **Property Contract (ERC721)**
-   - The **Property** contract allows minting of NFTs that represent real estate properties.
-   - Each property is uniquely identified by an NFT and contains metadata, such as its URI, which could link to further property details.
-   - **Minting**: New properties are minted by the seller with a specific URI for each property.
+## a. Smart Contracts (On-Chain Logic)
+Our project includes two Solidity smart contracts that manage NFT-based real estate transactions through a decentralized escrow system.
 
-### 2. **Escrow Contract**
-   - The **Escrow** contract manages the process of buying and selling properties.
-   - The **Lender**, **Inspector**, **Seller**, and **Buyer** are the main roles interacting with this contract.
-   - **Listing**: The seller lists properties for sale, specifying the purchase price and escrow amount.
-   - **Deposit**: The buyer deposits the agreed-upon escrow amount into the contract.
-   - **Inspection**: The inspector updates the status of the property inspection.
-   - **Approvals**: Both the seller and buyer, along with the lender, must approve the sale before it can proceed.
-   - **Finalization**: Once the sale is approved, the escrowed funds are transferred to the seller, and the property NFT is transferred to the buyer.
-   - **Cancellation**: If the inspection fails, the funds are returned to the buyer; otherwise, they are transferred to the seller.
+### Contracts
 
-## Flow of a Transaction:
-1. The **seller** mints and lists a property for sale, specifying the price and escrow amount.
-2. The **buyer** deposits the escrow amount to the contract.
-3. The **inspector** verifies the condition of the property.
-4. All parties approve the sale.
-5. Upon approval, the property is transferred to the buyer, and funds are transferred to the seller.
+#### Property.sol
+
+- ERC-721 compliant contract for minting and managing property NFTs.  
+- Each token represents a unique real estate property.  
+- Uses ERC721URIStorage to associate metadata (e.g., property details, images) with tokens.  
+- Language: Solidity  
+- Pattern Used: Standard ERC-721 via OpenZeppelin.
+
+#### Escrow.sol
+
+- Manages escrow logic for property sales involving buyer, seller, lender, and inspector.  
+- Ensures trustless flow: inspection, approval, escrow deposit, and finalization.  
+- Holds funds and NFT until all conditions are met, then transfers both.  
+- Language: Solidity  
+- Pattern Used: Role-based access (modifiers), secure handling of funds and tokens.
+
+### Roles
+
+- **Seller**: Lists the property and receives the funds after conditions are met.  
+- **Buyer**: Deposits escrow and receives the property NFT.  
+- **Inspector**: Approves or rejects property condition.  
+- **Lender**: Final approver and optionally provides funding.
+
+## b. Frontend (User Interface)
+
+- **Framework**: Vite + React  
+- **Blockchain Interaction**: Using ethers.js for contract interaction and wallet connectivity.  
+- **Wallet Support**: MetaMask 
+
+## Features
+
+- View available properties and their metadata.  
+- Connect wallet and mint new property NFTs.  
+- List NFTs for sale through the escrow contract.  
+- Deposit escrow and track inspection status.  
+- Finalize or cancel sales depending on inspection outcome.
+
+## c. Storage (Off-Chain)
+
+- **Storage Solution**: IPFS (via services like Pinata or web3.storage)  
+- **Purpose**: Hosting property metadata and media (images, documents).  
+- **On-Chain Reference**: Metadata URI is stored via `_setTokenURI()` in the Property.sol contract. This URI links each NFT to its off-chain data (e.g., JSON object hosted on IPFS).
+
+## Architecture and User Flow Diagram
+![Real Estate Architecture and User Flow](./metadata/images/RealEstateDApp.png) 
+
+## Interactions Flow
+Below is a step-by-step overview of how users interact with the platform and how the components (contracts + frontend + off-chain storage) coordinate to facilitate an NFT-based real estate sale.
+
+### 1. Minting a Property NFT (Seller)
+
+- **Action**: Seller connects wallet and uploads property metadata (images, details, location).
+- **Frontend**: Sends metadata to IPFS, returns a content URI.
+- **Contract Interaction**: `Property.sol → mint(tokenURI)`
+- **Result**: A new NFT representing the property is minted and assigned to the seller.
+
+---
+
+### 2. Listing Property for Sale (Seller)
+
+- **Action**: Seller selects an NFT and enters sale details (price, escrow amount, buyer address).
+- **Contract Interaction**: `Escrow.sol → list(nftID, price, escrow, buyer)`
+- **Effect**:
+  - NFT is transferred to Escrow contract.
+  - Buyer, price, and escrow details are recorded on-chain.
+  - Listing becomes active.
+
+---
+
+### 3. Depositing Escrow Funds (Buyer)
+
+- **Action**: Buyer connects wallet and deposits required escrow amount.
+- **Contract Interaction**: `Escrow.sol → depositEscrowAmount(nftID)`
+- **Effect**: Escrow funds are held securely in the contract balance.
+
+---
+
+### 4. Inspection Process (Inspector)
+
+- **Action**: Inspector assesses the property and updates the inspection status.
+- **Contract Interaction**: `Escrow.sol → updateInspectionStatus(nftID, passed)`
+- **Effect**: Inspection result is recorded and determines whether sale can proceed.
+
+---
+
+### 5. Approvals (All Parties)
+
+- **Action**: Buyer, seller, and lender each approve the sale.
+- **Contract Interaction**: `Escrow.sol → approveSale(nftID)`
+- **Effect**: Contract tracks approvals via a mapping; all parties must approve for the sale to finalize.
+
+---
+
+### 6. Finalizing the Sale 
+
+- **Condition**: All approvals are in place and inspection has passed.
+- **Contract Interaction**: `Escrow.sol → finaliseSale(nftID)`
+- **Effect**:
+  - Seller receives payment (entire contract balance).
+  - Buyer receives ownership of the NFT.
+  - Listing is closed.
+
+---
+
+### 7. Cancelling the Sale (Anytime before finalization)
+
+- **Condition**: Sale can be cancelled by logic based on inspection status.
+- **Contract Interaction**: `Escrow.sol → cancelSale(nftID)`
+- **Effect**:
+  - If inspection failed, escrow is refunded to buyer.
+  - If passed, seller keeps the funds.
+
+## Tech Stack & Dev Tools
+
+| Layer        | Technology / Tool                                 |
+|--------------|----------------------------------------------------|
+| **Contracts**| Solidity, Hardhat, OpenZeppelin                    |
+| **Blockchain**| Localhost (Hardhat)     |
+| **Frontend** | Vite + React, Ethers.js                            |
+| **Storage**  | IPFS (for metadata & property images)              |
+| **Wallets**  | MetaMask (primary)                                 |
 
 ## Steps to Use the Repository
 ### 1. Clone the Repository
@@ -82,7 +211,7 @@ npm install
      ```javascript
      await (await property.connect(seller).mint("http://localhost:8080/ipfs/<CID-for-metadata>")).wait();
      ```
-### 5. Deploy the Contracts
+### 4. Deploy the Contracts
 
 Before deploying the contracts, make sure to follow these steps:
 
@@ -105,12 +234,9 @@ Before deploying the contracts, make sure to follow these steps:
      npx hardhat run scripts/deploy.js --network localhost
      ```
 
-## Interact with the DApp
-Once the contracts are deployed, you can interact with them using the frontend. 
-
-### Crowd Funding DApp Frontend (Coming Soon)
-Please refer to the upcoming frontend repository to clone and run the DApp once it’s ready. The repository link and steps will be provided here.
-Stay tuned for further updates!
+### 5. Interact with the DApp
+Once the contracts are deployed, you can interact with them using the frontend. <br>
+Steps will be provided soon
 
 ## License
 
