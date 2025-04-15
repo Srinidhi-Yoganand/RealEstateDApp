@@ -32,6 +32,7 @@ function App() {
     <>
       <div>
       <Navigation account={account} setAccount={setAccount} />
+      <Search />
         Welcome to Millow...
       </div>
     </>
