@@ -49,11 +49,11 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       const hasInspected = await escrow.inspectionPassed(home.id)
       setHasInspected(hasInspected)
 
-      console.log("Active account:", account);
-  console.log("Buyer:", buyer);
-  console.log("Seller:", seller);
-  console.log("Lender:", lender);
-  console.log("Inspector:", inspector);
+    console.log("Active account:", account);
+    console.log("Buyer:", buyer);
+    console.log("Seller:", seller);
+    console.log("Lender:", lender);
+    console.log("Inspector:", inspector);
   }
 
   const fetchOwner = async () => {
@@ -63,63 +63,63 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
       setOwner(owner)
   }
 
-  // const buyHandler = async () => {
-  //     const escrowAmount = await escrow.escrowAmount(home.id)
-  //     const signer = await provider.getSigner()
+  const buyHandler = async () => {
+      const escrowAmount = await escrow.escrowAmount(home.id)
+      const signer = await provider.getSigner()
 
-  //     // Buyer deposit earnest
-  //     let transaction = await escrow.connect(signer).depositEarnest(home.id, { value: escrowAmount })
-  //     await transaction.wait()
+      // Buyer deposit earnest
+      let transaction = await escrow.connect(signer).depositEarnest(home.id, { value: escrowAmount })
+      await transaction.wait()
 
-  //     // Buyer approves...
-  //     transaction = await escrow.connect(signer).approveSale(home.id)
-  //     await transaction.wait()
+      // Buyer approves...
+      transaction = await escrow.connect(signer).approveSale(home.id)
+      await transaction.wait()
 
-  //     setHasBought(true)
-  // }
+      setHasBought(true)
+  }
 
-  // const inspectHandler = async () => {
-  //     const signer = await provider.getSigner()
+  const inspectHandler = async () => {
+      const signer = await provider.getSigner()
 
-  //     // Inspector updates status
-  //     const transaction = await escrow.connect(signer).updateInspectionStatus(home.id, true)
-  //     await transaction.wait()
+      // Inspector updates status
+      const transaction = await escrow.connect(signer).updateInspectionStatus(home.id, true)
+      await transaction.wait()
 
-  //     setHasInspected(true)
-  // }
+      setHasInspected(true)
+  }
 
-  // const lendHandler = async () => {
-  //     const signer = await provider.getSigner()
+  const lendHandler = async () => {
+      const signer = await provider.getSigner()
 
-  //     // Lender approves...
-  //     const transaction = await escrow.connect(signer).approveSale(home.id)
-  //     await transaction.wait()
+      // Lender approves...
+      const transaction = await escrow.connect(signer).approveSale(home.id)
+      await transaction.wait()
 
-  //     // Lender sends funds to contract...
-  //     const lendAmount = (await escrow.purchasePrice(home.id) - await escrow.escrowAmount(home.id))
-  //     await signer.sendTransaction({ to: escrow.address, value: lendAmount.toString(), gasLimit: 60000 })
+      // Lender sends funds to contract...
+      const lendAmount = (await escrow.purchasePrice(home.id) - await escrow.escrowAmount(home.id))
+      await signer.sendTransaction({ to: escrow.address, value: lendAmount.toString(), gasLimit: 60000 })
 
-  //     setHasLended(true)
-  // }
+      setHasLended(true)
+  }
 
-  // const sellHandler = async () => {
-  //     const signer = await provider.getSigner()
+  const sellHandler = async () => {
+      const signer = await provider.getSigner()
 
-  //     // Seller approves...
-  //     let transaction = await escrow.connect(signer).approveSale(home.id)
-  //     await transaction.wait()
+      // Seller approves...
+      let transaction = await escrow.connect(signer).approveSale(home.id)
+      await transaction.wait()
 
-  //     // Seller finalize...
-  //     transaction = await escrow.connect(signer).finalizeSale(home.id)
-  //     await transaction.wait()
+      // Seller finalize...
+      transaction = await escrow.connect(signer).finalizeSale(home.id)
+      await transaction.wait()
 
-  //     setHasSold(true)
-  // }
+      setHasSold(true)
+  }
 
   useEffect(() => {
       fetchDetails()
       fetchOwner()
-  }, [account,hasSold])
+  }, [hasSold])
 
   return (
     <div className='home'>
@@ -143,28 +143,29 @@ const Home = ({ home, provider, account, escrow, togglePop }) => {
               </div>
             ) : (
               <div>
-                {(account === inspector) ? (
-                <button className='home__buy'>
-                    Approve Inspection
+                {(account?.toLowerCase() === inspector?.toLowerCase()) ? (
+                <button className='home__buy' onClick={inspectHandler} disabled={hasInspected}>
+                  Approve Inspection
                 </button>
-                ) : (account === lender) ? (
-                    <button className='home__buy' >
-                        Approve & Lend
-                    </button>
-                ) : (account?.toLowerCase() === seller?.toLowerCase()
-              ) ? (
-                    <button className='home__buy' >
-                        Approve & Sell
-                    </button>
+                ) : (account?.toLowerCase() === lender?.toLowerCase()) ? (
+                  <button className='home__buy' onClick={lendHandler} disabled={hasLended}>
+                    Approve & Lend
+                  </button>
+                ) : (account?.toLowerCase() === seller?.toLowerCase()) ? (
+                  <button className='home__buy' onClick={sellHandler} disabled={hasSold}>
+                    Approve & Sell
+                  </button>
                 ) : (
-                    <button className='home__buy' >
-                        Buy
-                    </button>
+                  <button className='home__buy' onClick={buyHandler} disabled={hasBought}>
+                    Buy
+                  </button>
                 )}
+  
                 <button className='home__contact'>
                   Contact agent
                 </button>
-                </div>
+              </div>
+
             )}
             <hr />
             <h2>Overview</h2>
