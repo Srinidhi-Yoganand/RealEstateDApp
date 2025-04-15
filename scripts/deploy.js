@@ -1,4 +1,5 @@
-const { ethers } = require("hardhat");
+import hardhat from "hardhat";
+const { ethers } = hardhat;
 
 function tokens(n) {
   return ethers.parseUnits(n.toString(), "ether");

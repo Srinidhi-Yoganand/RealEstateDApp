@@ -3,15 +3,22 @@ import { ethers } from 'ethers';
 import logo from '../assets/logo.svg';
 
 const Navigation = ({ account, setAccount }) => {
-  const connectHandler = async () => {
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const account = ethers.utils.getAddress(accounts[0]);
-      setAccount(account);
-    } catch (error) {
-      console.error("Connection Error:", error);
+    const connectHandler = async () => {
+      try {
+        if (typeof window.ethereum !== 'undefined') {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          if (accounts.length > 0) {
+            const account = accounts[0]; 
+            setAccount(account);
+          }
+        } else {
+          console.error('MetaMask is not installed.');
+          alert('MetaMask is not installed.');
+        }
+      } catch (error) {
+        console.error('Error connecting to MetaMask:', error);
+      }
     }
-  };
 
   return (
     <nav className="nav">

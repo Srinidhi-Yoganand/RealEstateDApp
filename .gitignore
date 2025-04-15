@@ -3,6 +3,7 @@ contracts/artifacts
 artifacts
 cache
 node_modules
+.deps
 
 # Logs
 logs
